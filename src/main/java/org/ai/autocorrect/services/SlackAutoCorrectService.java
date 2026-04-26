@@ -149,8 +149,12 @@ public class SlackAutoCorrectService {
     private String correctWithGemini(String originalText) {
         try {
             return chatClient.prompt()
-                    .user("Correct the following text for a professional Slack message. " +
-                            "Return ONLY the corrected text:\n\n" + originalText)
+                    .user("""
+                    Correct the following Slack message. Fix all typos, grammar mistakes,
+                    and make it sound professional and clear.
+                    Return ONLY the corrected message — no explanations, no quotes:
+
+                    """ + originalText)
                     .call()
                     .content();
         } catch (Exception e) {
