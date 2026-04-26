@@ -1,10 +1,10 @@
-package org.ai.agentic;
+package org.ai.autocorrect;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class AgenticApplicationTests {
+class AutocorrectApplicationTests {
     @Test
     void contextLoads() {
     }

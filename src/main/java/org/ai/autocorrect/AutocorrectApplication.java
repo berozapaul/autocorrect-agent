@@ -1,4 +1,4 @@
-package org.ai.agentic;
+package org.ai.autocorrect;
 
 import org.springframework.ai.retry.autoconfigure.SpringAiRetryAutoConfiguration;
 import org.springframework.boot.SpringApplication;
@@ -7,10 +7,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.retry.support.RetryTemplate;
 
 @SpringBootApplication(exclude = {SpringAiRetryAutoConfiguration.class})
-public class AgenticApplication {
+public class AutocorrectApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(AgenticApplication.class, args);
+        SpringApplication.run(AutocorrectApplication.class, args);
     }
 
     @Bean
