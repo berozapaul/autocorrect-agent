@@ -1,5 +1,8 @@
 package org.ai.autocorrect.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.slack.api.Slack;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ai.autocorrect.services.SlackAutoCorrectService;
@@ -7,6 +10,7 @@ import org.ai.autocorrect.services.SlackSignatureVerifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
@@ -17,6 +21,8 @@ public class SlackEventController {
 
     private final SlackAutoCorrectService autoCorrectService;
     private final SlackSignatureVerifier signatureVerifier;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Slack slack = Slack.getInstance();
 
     @PostMapping("/events")
     public ResponseEntity<Map<String, String>> handleEvent(
@@ -55,5 +61,57 @@ public class SlackEventController {
 
         // ── 5. Always return 200 immediately (Slack requires < 3s) ──
         return ResponseEntity.ok(Map.of("status", "ok"));
+    }
+
+    // --- Handle /fix or /refine ---
+    @PostMapping("/commands")
+    public ResponseEntity<String> handleCommand(
+            @RequestParam("text") String text,
+            @RequestParam("channel_id") String channelId,
+            @RequestParam("user_id") String userId) {
+
+        // Trigger the AI processing in the background
+            autoCorrectService.processPreviewRequest(text, channelId, userId);
+
+        // Return empty 200 immediately to acknowledge
+        return ResponseEntity.ok("");
+    }
+
+    // --- Handle Button Clicks ---
+    @PostMapping("/interactions")
+    public ResponseEntity<String> handleInteractions(@RequestParam("payload") String payloadJson) throws Exception {
+        JsonNode payload = objectMapper.readTree(payloadJson);
+        String actionId = payload.path("actions").get(0).path("action_id").asText();
+        String channelId = payload.path("channel").path("id").asText();
+        String responseUrl = payload.path("response_url").asText(); // The unique URL to update/delete the preview
+
+        if ("approve_and_post".equals(actionId)) {
+            // 1. Get the text from the button value
+            String correctedText = payload.path("actions").get(0).path("value").asText();
+
+            // 2. Post the final message to the channel (as the user)
+            autoCorrectService.postFinalMessage(channelId, correctedText);
+
+            // 3. Force the ephemeral preview to disappear
+            // We send a JSON payload to the response_url telling Slack to delete it
+            deleteEphemeralMessage(responseUrl);
+
+            return ResponseEntity.ok(""); // Acknowledge with a clean 200
+        }
+
+        if ("cancel_preview".equals(actionId)) {
+            deleteEphemeralMessage(responseUrl);
+            return ResponseEntity.ok("");
+        }
+
+        return ResponseEntity.ok("");
+    }
+
+    /**
+     * Helper method to tell Slack to remove the ephemeral message via the response_url
+     */
+    private void deleteEphemeralMessage(String responseUrl) throws IOException {
+        // Slack SDK's internal HTTP client is handy for this
+        slack.getHttpClient().postJsonBody(responseUrl, "{\"delete_original\": \"true\"}");
     }
 }
