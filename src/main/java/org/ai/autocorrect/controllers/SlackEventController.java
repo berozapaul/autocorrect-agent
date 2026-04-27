@@ -30,12 +30,6 @@ public class SlackEventController {
             @RequestHeader(value = "X-Slack-Signature", required = false) String signature,
             @RequestBody String rawBody) {
 
-        // ── 1. Verify request is genuinely from Slack ──
-//        if (!signatureVerifier.isValid(timestamp, signature, rawBody)) {
-//            log.warn("Invalid Slack signature — request rejected");
-//            return ResponseEntity.status(401).body(Map.of("error", "Invalid signature"));
-//        }
-
         // ── 2. Parse raw body into map ──
         Map<String, Object> payload = signatureVerifier.parseJson(rawBody);
         if (payload == null) {
