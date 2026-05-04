@@ -95,7 +95,7 @@ public class SlackAutoCorrectService {
             MethodsClient methods = slack.methods(slackBotToken);
             ChatPostEphemeralResponse response = methods.chatPostEphemeral(r -> r
                     .channel(channel)
-                    .text("AI Suggestion Preview")
+                    .text("Agent Suggestion Preview")
                     .user(userId)
                     .blocks(List.of(
                             SectionBlock.builder()
