@@ -100,7 +100,7 @@ public class SlackAutoCorrectService {
                     .blocks(List.of(
                             SectionBlock.builder()
                                     .text(MarkdownTextObject.builder()
-                                            .text("*AI Suggestion:*\n" + corrected.trim())
+                                            .text("*Agent Suggestion:*\n" + corrected.trim())
                                             .build())
                                     .build(),
                             ActionsBlock.builder()
