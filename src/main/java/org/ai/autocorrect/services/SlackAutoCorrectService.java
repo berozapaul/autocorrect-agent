@@ -142,7 +142,7 @@ public class SlackAutoCorrectService {
                     .text(text)
             );
         } catch (Exception e) {
-            log.error("Error posting final message", e);
+            System.out.println("Error posting final message");
         }
     }
 
